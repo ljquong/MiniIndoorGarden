@@ -30,12 +30,10 @@ set_color(0, 0, 0)
 #function to check ldr value to see if it is 'dark' for 10 seconds
 #if it is, turn on the led lights, if it is 'not dark' for 10 seconds, turn lights off
 def read_photocell():
+    is_dark = True
     for i in range(10):
         ldr_value = ldr.read_u16()
-        is_dark = False
-        if ldr_value > 60000:
-            is_dark = True
-        else:
+        if ldr_value < 60000:
             is_dark = False
         time.sleep(1)
     if is_dark:
@@ -57,7 +55,7 @@ def read_float_switch():
 
 #main program to run both functions continuously
 while True:
-    read_photocell()
     read_float_switch()
+    read_photocell()
     print()
     time.sleep(1)
