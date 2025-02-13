@@ -23,12 +23,13 @@ def set_color(r, g, b):
     red.duty_u16(r * 257)
     green.duty_u16(g * 257)
     blue.duty_u16(b * 257)
-    
-set_color(0, 0, 0)
 
-#remove print statements here
-#function to check ldr value to see if it is 'dark' for 10 seconds
-#if it is, turn on the led lights, if it is 'not dark' for 10 seconds, turn lights off
+# Turn all lights off
+set_color(0, 0, 0)
+grow_lights.value(0)
+
+# function to check ldr value to see if it is 'dark' for 10 seconds
+# if it is, turn on the led lights, if it is 'not dark' for 10 seconds, turn lights off
 def read_photocell():
     is_dark = True
     for i in range(10):
@@ -37,25 +38,20 @@ def read_photocell():
             is_dark = False
         time.sleep(1)
     if is_dark:
-        #grow_lights.value(1)
-        print("It is DARK.")
+        grow_lights.value(1)
     else:
-        #grow_lights.value(0)
-        print("It is BRIGHT.")
+        grow_lights.value(0)
 
-#read the state of the float switch: 0 means liquid present, so light should not turn on
-#if there is no water, the light should turn on
+# read the state of the float switch: 0 means liquid present, so light should not turn on
+# if there is no water, the light should turn on
 def read_float_switch():
     if float_switch.value() == 0:
         set_color(0, 0, 0)
-        print("There is WATER.")
     else:
         set_color(255, 0, 0)
-        print("There is NO WATER.")
 
-#main program to run both functions continuously
+# main program to run both functions continuously
 while True:
-    read_float_switch()
     read_photocell()
-    print()
+    read_float_switch()
     time.sleep(1)
