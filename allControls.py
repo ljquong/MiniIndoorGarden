@@ -25,7 +25,7 @@ i2c = I2C(0, sda=Pin(SDA_PIN), scl=Pin(SCL_PIN), freq=400000)
 stemma_soil_sensor = StemmaSoilSensor(i2c)
 seesaw = stemma_soil_sensor # Data Sheet = ~200 (very dry) to ~2000 (very wet) 1015 = Wet, 331 = Dry
                             # Soil sensor has temp + or - 2 degrees Celsius
-pump = Pin(16, Pin.OUT) # Pump pin is connected to the transistor base, Pump is connected to 5v of PI Pico with a potentiometer in series to control flow.
+pump = Pin(17, Pin.OUT) # Pump pin is connected to the transistor base, Pump is connected to 5v of PI Pico with a potentiometer in series to control flow.
 
 # Function to set RGB LED color by converting 8-bit integers for
 # r (red), g (green), b (blue) into 16-bit integers, that are
@@ -34,13 +34,15 @@ def set_color(r, g, b):
     red.duty_u16(r * 257)
     green.duty_u16(g * 257)
     blue.duty_u16(b * 257)
-    
+
+# set all lights to zero
 set_color(0, 0, 0)
 grow_lights.value(0)
 
-#remove print statements here
-#function to check ldr value to see if it is 'dark' for 10 seconds
-#if it is, turn on the led lights, if it is 'not dark' for 10 seconds, turn lights off
+# print statements are for testing only
+# function to check ldr value to see if it is 'dark' for 10 seconds
+# if it is, turn on the led lights, if it is 'not dark' for 10 seconds, turn lights off
+# photocell must read 'dark' for ten seconds straight, otherwise final result will still be 'bright' and grow lights will not turn 
 def read_photocell():
     is_dark = True
     for i in range(3):
@@ -50,60 +52,72 @@ def read_photocell():
         time.sleep(1)
     if is_dark:
         grow_lights.value(1)
-        #print(ldr_value)
-        #print("It is DARK.")
+        print(ldr_value)
+        print("It is DARK.")
     else:
         grow_lights.value(0)
-        #print(ldr_value)
-        #print("It is BRIGHT.")
+        print(ldr_value)
+        print("It is BRIGHT.")
 
 #read the state of the float switch: 0 means liquid present, so light should not turn on
 #if there is no water, the light should turn on
 def read_float_switch():
     if float_switch.value() == 0:
         set_color(0, 0, 0)
-        #print("There is WATER.")
+        print("There is WATER.")
     else:
         set_color(255, 0, 0)
-        #print("There is NO WATER.")
+        print("There is NO WATER.")
 
+#values changed for testing/demo purposes
 def moisture_read():
-  moisture = seesaw.get_moisture()
-  temperature = seesaw.get_temp()
-  print(f'Moisture Level: {moisture}, Temperature: {temperature:.1f}{chr(176)}C')
-  time.sleep(2)
-  if moisture < 415:
-      if moisture >= 400 and moisture < 415:
-          num_pump = 3
-          print("REGULAR WATERING IN PROGRESS")
-      elif moisture >= 370 and moisture < 400:
-          num_pump = 5
-          print("SLIGHTLY DRY: WATERING IN PROGRESS")
-      elif moisture >= 340 and moisture < 270:
-          print("DRY: WATERING IN PROGRESS")
-          num_pump = 7
-      else:
-          print("VERY DRY: WATERING IN PROGRESS")
-          num_pump = 9
+    moisture = seesaw.get_moisture()
+    temperature = seesaw.get_temp()
+    print(f'Moisture Level: {moisture}, Temperature: {temperature:.1f}{chr(176)}C')
+    time.sleep(2)
+    num_pump = 0
+    if moisture < 415:
+        if moisture >= 400 and moisture < 415:
+            num_pump = 1
+            print("REGULAR WATERING IN PROGRESS")
+        elif moisture >= 370 and moisture < 400:
+            num_pump = 1
+            print("SLIGHTLY DRY: WATERING IN PROGRESS")
+        elif moisture >= 340 and moisture < 270:
+            print("DRY: WATERING IN PROGRESS")
+            num_pump = 1
+        else:
+            print("VERY DRY: WATERING IN PROGRESS")
+            num_pump = 1
     return num_pump
 
 def pumping(num_pump):
-  if num_pump > 0:
-      for i in range(num_pump):
-          pump.value(1) # turn pump on
-          time.sleep(10) # pump will remain on for 10s
-          
-          pump.value(0) # turn pump off
-          time.sleep(3) # pump will remain off for 10s
+    if num_pump > 0:
+        for i in range(num_pump):
+            pump.value(1) # turn pump on
+            time.sleep(10) # pump will remain on for 10s
+            pump.value(0) # turn pump off
+            time.sleep(3) # pump will remain off for 10s
     print("<<Watering complete!>>\n")
-    time.sleep(20) #1-2 minutes in final design 
+    time.sleep(3) #1-2 minutes in final design 
 
-#main program to run both functions continuously
-while True:
-    read_photocell()
-    read_float_switch()
-    times_pump = moisture_read()
-    if times_pump > 0:
-        pumping(times_pump)
-    #print()
-    time.sleep(1)
+# main program to run both functions continuously
+try:
+    while True:
+        pump.value(0)
+        read_photocell()
+        read_float_switch()
+        times_pump = moisture_read()
+        if times_pump > 0:
+            pumping(times_pump)
+        time.sleep(1)            
+         
+except Exception as e:
+    # Sensor reset after 10 sec
+    print(f"Error,Resetting: {e}")
+    time.sleep(10)
+    i2c = I2C(0, sda=Pin(SDA_PIN), scl=Pin(SCL_PIN), freq=400000)
+    stemma_soil_sensor = StemmaSoilSensor(i2c)
+    seesaw = stemma_soil_sensor
+    pump.value(0)
+    print("ERROR OCCURED:", e)
