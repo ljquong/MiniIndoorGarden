@@ -1,33 +1,3 @@
-'''
-# CHANGING VALUES FOR THE PUMP
-def moisture_read():
-    moisture = seesaw.get_moisture()
-    temperature = seesaw.get_temp()
-    print(f'Moisture Level: {moisture}, Temperature: {temperature:.1f}{chr(176)}C')
-    time.sleep(2)
-    num_pump = 0
-    if moisture > 440:
-        num_pump = 0
-        print("WET: NO WATERING IN PROGRESS")
-    elif moisture >= 440 and moisture < 400:
-        num_pump = 2
-        print("REGULAR WATERING IN PROGRESS")
-    elif moisture <= 400: # or just else?
-        print("DRY: WATERING IN PROGRESS")
-        num_pump = 3        
-    return num_pump
-
-def pumping(num_pump):
-    if num_pump > 0:
-        for i in range(num_pump):
-            pump.value(1) # turn pump on
-            time.sleep(5) # pump will remain on for 5s
-            pump.value(0) # turn pump off
-            time.sleep(2) # pump will remain off for 2s
-    print("<<Watering complete!>>\n")
-    time.sleep(60) #1-2 minutes in final design
-    '''
-    
 from machine import Pin, PWM, I2C
 from stemma_soil_sensor import StemmaSoilSensor # Save the two Libraries to the Pi Pico seesaw and stemma_soil_sensor
 import time
@@ -135,7 +105,7 @@ while True:
         times_pump = moisture_read()
         if times_pump > 0:
             pumping(times_pump)
-            time.sleep(10) #1-2 minutes in final design
+            time.sleep(45) #1-2 minutes in final design
         time.sleep(2)            
     except Exception as e:
         # Sensor reset after 10 sec
@@ -147,4 +117,3 @@ while True:
         seesaw = stemma_soil_sensor
         pump.value (0)
         print("ERROR OCCURED:", e)
-
