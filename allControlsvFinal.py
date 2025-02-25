@@ -1,3 +1,4 @@
+   
 from machine import Pin, PWM, I2C
 from stemma_soil_sensor import StemmaSoilSensor # Save the two Libraries to the Pi Pico seesaw and stemma_soil_sensor
 import time
@@ -80,11 +81,11 @@ def moisture_read():
         num_pump = 0
         print("WET: NO WATERING IN PROGRESS")
     elif moisture <= 440 and moisture > 400:
-        num_pump = 2
+        num_pump = 1
         print("REGULAR WATERING IN PROGRESS")
     elif moisture <= 400: # or just else?
         print("DRY: WATERING IN PROGRESS")
-        num_pump = 3        
+        num_pump = 2        
     return num_pump
 
 def pumping(num_pump):
