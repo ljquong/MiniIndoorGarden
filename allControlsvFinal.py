@@ -62,13 +62,18 @@ def read_photocell():
 
 #read the state of the float switch: 0 means liquid present, so light should not turn on
 #if there is no water, the light should turn on
+
+has_water = True
+
 def read_float_switch():
     if float_switch.value() == 0:
         set_color(0, 0, 0)
         print("There is WATER.")
+        has_water = True
     else:
         set_color(255, 0, 0)
         print("There is NO WATER.")
+        has_water = False
 
 # CHANGING VALUES FOR THE PUMP
 def moisture_read():
@@ -77,15 +82,19 @@ def moisture_read():
     print(f'Moisture Level: {moisture}, Temperature: {temperature:.1f}{chr(176)}C')
     time.sleep(2)
     num_pump = 0
-    if moisture > 440:
+    if has_water:
+        if moisture > 440:
+            num_pump = 0
+            print("WET: NO WATERING IN PROGRESS")
+        elif moisture <= 440 and moisture > 400:
+            num_pump = 1
+            print("REGULAR WATERING IN PROGRESS")
+        elif moisture <= 400: # or just else?
+            print("DRY: WATERING IN PROGRESS")
+            num_pump = 2        
+    else:
+        print("WATER SUPPLY EMPTY")
         num_pump = 0
-        print("WET: NO WATERING IN PROGRESS")
-    elif moisture <= 440 and moisture > 400:
-        num_pump = 1
-        print("REGULAR WATERING IN PROGRESS")
-    elif moisture <= 400: # or just else?
-        print("DRY: WATERING IN PROGRESS")
-        num_pump = 2        
     return num_pump
 
 def pumping(num_pump):
